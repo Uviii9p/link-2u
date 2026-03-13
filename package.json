@@ -1,0 +1,9 @@
+{
+  "name": "image-to-link-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "backend-install": "cd backend && npm install"
+  }
+}
