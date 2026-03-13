@@ -2,15 +2,18 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const sharp = require('sharp');
 const axios = require('axios');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
-const Vibrant = require('node-vibrant');
 const dbHandler = require('./db');
-const fs = require('fs-extra'); // Add fs-extra for easy cleanup
+const fs = require('fs-extra');
 const os = require('os');
+
+// Optional native dependencies (may fail on Vercel)
+let sharp, Vibrant;
+try { sharp = require('sharp'); } catch (e) { console.warn('sharp not available, image processing disabled'); }
+try { Vibrant = require('node-vibrant'); } catch (e) { console.warn('node-vibrant not available, palette extraction disabled'); }
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -137,9 +140,9 @@ app.post('/api/upload', upload.array('images', 50), async (req, res) => {
       const cleanOriginalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
       
       const isImage = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype);
-      const filename = isImage 
+      const filename = (isImage && sharp)
         ? `photo-${Date.now()}-${crypto.randomBytes(2).toString('hex')}.webp`
-        : `file-${Date.now()}-${crypto.randomBytes(2).toString('hex')}${ext}`;
+        : `file-${Date.now()}-${crypto.randomBytes(2).toString('hex')}${ext || '.bin'}`;
       
       const gitPath = `${isImage ? 'images' : 'files'}/${year}/${month}/${filename}`;
       const thumbGitPath = `thumbnails/${year}/${month}/${filename}`;
@@ -156,8 +159,8 @@ app.post('/api/upload', upload.array('images', 50), async (req, res) => {
       let finalMetadata = { width: 0, height: 0 };
       let palette = [];
 
-      if (isImage) {
-        // Image processing (sharp)
+      if (isImage && sharp) {
+        // Image processing (sharp available)
         let processedImage = sharp(fileBuffer);
         const metadata = await processedImage.metadata();
         
@@ -176,13 +179,15 @@ app.post('/api/upload', upload.array('images', 50), async (req, res) => {
           .toBuffer();
 
         // Palette Extraction
-        try {
-          const swatches = await Vibrant.from(fileBuffer).getPalette();
-          palette = Object.keys(swatches)
-            .filter(k => swatches[k])
-            .map(k => swatches[k].getHex());
-        } catch (err) {
-          console.error("Palette extraction failed:", err.message);
+        if (Vibrant) {
+          try {
+            const swatches = await Vibrant.from(fileBuffer).getPalette();
+            palette = Object.keys(swatches)
+              .filter(k => swatches[k])
+              .map(k => swatches[k].getHex());
+          } catch (err) {
+            console.error("Palette extraction failed:", err.message);
+          }
         }
       }
 
