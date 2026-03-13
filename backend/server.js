@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const Vibrant = require('node-vibrant');
 const dbHandler = require('./db');
 const fs = require('fs-extra'); // Add fs-extra for easy cleanup
+const os = require('os');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,7 +21,9 @@ app.use(express.json());
 // Set up Multer (Disk storage for stability with large files)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, 'temp_uploads');
+    const uploadDir = process.env.VERCEL 
+      ? path.join(os.tmpdir(), 'temp_uploads') 
+      : path.join(__dirname, 'temp_uploads');
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
     cb(null, uploadDir);
   },

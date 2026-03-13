@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { QRCodeSVG } from 'qrcode.react';
 import { Routes, Route, useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
@@ -41,7 +41,7 @@ import {
   Video,
   Box
 } from 'lucide-react';
-import { uploadImages, getGallery, getAnalytics, deleteImage, renameImage, getShortLink, moveImage } from './api';
+import { uploadImages, getGallery, getAnalytics, deleteImage, getShortLink } from './api';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -53,7 +53,7 @@ const safeParse = (str, fallback = []) => {
     if (!str) return fallback;
     const parsed = typeof str === 'string' ? JSON.parse(str) : str;
     return Array.isArray(parsed) ? parsed : fallback;
-  } catch (e) {
+  } catch {
     return fallback;
   }
 };
@@ -140,7 +140,7 @@ function Dashboard({ theme, toggleTheme }) {
   const [isGalleryLoading, setIsGalleryLoading] = useState(true);
   
   const navigate = useNavigate();
-  const safeImages = Array.isArray(images) ? images : [];
+  const safeImages = useMemo(() => Array.isArray(images) ? images : [], [images]);
 
   // Extract all unique tags
   const allTags = useMemo(() => {
@@ -153,6 +153,7 @@ function Dashboard({ theme, toggleTheme }) {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchData = async () => {
@@ -183,7 +184,7 @@ function Dashboard({ theme, toggleTheme }) {
       setSelectedIds(new Set());
       setIsSelectionMode(false);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error('Purge failed', { id: toastId });
     }
   };
@@ -408,7 +409,7 @@ function PublicPage({ theme, toggleTheme }) {
       try {
         const response = await axios.get(`${API_URL}/image/${filename}`);
         setImage(response.data.image);
-      } catch (err) {
+      } catch {
         toast.error('Asset detached from vault');
         navigate('/');
       } finally {
@@ -416,6 +417,7 @@ function PublicPage({ theme, toggleTheme }) {
       }
     };
     fetchImage();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filename]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950"><motion.div animate={{ scale: [1, 1.5, 1], rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full" /></div>;
@@ -546,6 +548,7 @@ function PublicPage({ theme, toggleTheme }) {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 const NavItem = ({ icon: Icon, label, active, onClick }) => (
   <button
     onClick={onClick}
@@ -560,6 +563,7 @@ const NavItem = ({ icon: Icon, label, active, onClick }) => (
   </button>
 );
 
+// eslint-disable-next-line no-unused-vars
 const FeatureCard = ({ icon: Icon, title, desc }) => (
   <div className="glass-panel rounded-3xl p-6 border border-slate-100 dark:border-slate-800/50 flex gap-4 items-start group hover:-translate-y-1 transition-all">
     <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl text-indigo-500 group-hover:rotate-12 transition-transform">
@@ -778,12 +782,11 @@ const GalleryView = ({ images, loading, viewMode, onImageSelect, isSelectionMode
 };
 
 const AnalyticsView = ({ analytics }) => {
-  if (!analytics || !analytics.stats) return <div className="animate-pulse h-96 glass-panel rounded-[3rem] bg-slate-100 dark:bg-slate-900 flex items-center justify-center font-bold text-slate-400 uppercase tracking-widest">Awaiting Data Streams...</div>;
+  const stats = analytics?.stats || null;
+  const recent = Array.isArray(analytics?.recent) ? analytics.recent : [];
+  const daily = Array.isArray(analytics?.daily) ? analytics.daily : [];
   
-  const stats = analytics.stats;
-  const recent = Array.isArray(analytics.recent) ? analytics.recent : [];
-  const daily = Array.isArray(analytics.daily) ? analytics.daily : [];
-  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const chartData = useMemo(() => {
     if (daily.length === 0) {
       return [
@@ -802,6 +805,8 @@ const AnalyticsView = ({ analytics }) => {
       };
     });
   }, [daily]);
+
+  if (!analytics || !stats) return <div className="animate-pulse h-96 glass-panel rounded-[3rem] bg-slate-100 dark:bg-slate-900 flex items-center justify-center font-bold text-slate-400 uppercase tracking-widest">Awaiting Data Streams...</div>;
 
   return (
     <div className="space-y-10">
@@ -852,6 +857,7 @@ const AnalyticsView = ({ analytics }) => {
   );
 };
 
+// eslint-disable-next-line no-unused-vars
 const StatCard = ({ title, value, icon: Icon, color }) => {
   const colorMap = {
     blue: "from-blue-500/20 to-transparent bg-blue-500/5 text-blue-600 border-blue-500/10",

@@ -1,7 +1,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const os = require('os');
 
-const db = new Database(path.join(__dirname, 'analytics.sqlite'));
+// Use /tmp for Vercel's read-only environment to prevent deployment crashes
+const dbPath = process.env.VERCEL 
+  ? path.join(os.tmpdir(), 'analytics.sqlite') 
+  : path.join(__dirname, 'analytics.sqlite');
+
+const db = new Database(dbPath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS images (
