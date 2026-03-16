@@ -1,1 +1,3 @@
-const app = require('../backend/server.js'); module.exports = app;
+module.exports = (req, res) => {
+  res.json({ status: "ok", message: "Root API index is active" });
+};
