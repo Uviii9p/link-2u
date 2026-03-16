@@ -1,45 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build",
   "outputDirectory": "dist",
   "functions": {
     "api/index.js": {
       "runtime": "nodejs20.x",
-      "includeFiles": "../backend/**"
+      "includeFiles": "backend/**"
     }
   },
   "rewrites": [
     {
-      "source": "/api/ping",
+      "source": "/api/(.*)",
       "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/gallery",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/upload",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/analytics",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/delete",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/rename",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/move",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/api/hello",
-      "destination": "/api/hello.js"
     },
     {
       "source": "/s/(.*)",

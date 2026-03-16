@@ -41,6 +41,10 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/api/ping",
+      "destination": "/api/ping.js"
+    },
+    {
       "source": "/api/hello",
       "destination": "/api/hello.js"
     },
