@@ -4,17 +4,45 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/index.js": {
+      "runtime": "nodejs20.x",
       "includeFiles": "backend/**"
+    },
+    "api/hello.js": {
+      "runtime": "nodejs20.x"
     }
   },
   "rewrites": [
     {
-      "source": "/api/hello",
-      "destination": "/api/hello.js"
+      "source": "/api/ping",
+      "destination": "/api/index.js"
     },
     {
-      "source": "/api/(.*)",
+      "source": "/api/gallery",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/upload",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/analytics",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/delete",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/rename",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/move",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/hello",
+      "destination": "/api/hello.js"
     },
     {
       "source": "/s/(.*)",

@@ -169,7 +169,7 @@ function Dashboard({ theme, toggleTheme }) {
       }
     } catch (err) {
       console.error(err);
-      toast.error('Sync failed');
+      toast.error(`Sync failed: ${err.response?.data?.error || err.message}`);
     } finally {
       setIsGalleryLoading(false);
     }
