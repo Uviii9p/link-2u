@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import { QRCodeSVG } from 'qrcode.react';
 import { Routes, Route, useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
