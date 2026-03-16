@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.get('/api/ping', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 // Set up Multer (Disk storage for stability with large files)
 const storage = multer.diskStorage({
