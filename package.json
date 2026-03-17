@@ -1,30 +1,39 @@
 {
-  "name": "image-to-link-monorepo",
+  "name": "stellar-vault",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "type": "module",
   "engines": {
     "node": "20.x"
   },
   "scripts": {
-    "install-all": "npm install",
-    "build": "npm run build --workspace=frontend",
-    "vercel-build": "npm run build --workspace=frontend",
-    "dev": "npm run dev --workspace=frontend",
-    "start": "npm run start --workspace=backend",
-    "dev:all": "start npm run start && npm run dev"
+    "dev": "vite",
+    "build": "vite build",
+    "vercel-build": "vite build",
+    "preview": "vite preview",
+    "start-backend": "node backend/server.js",
+    "dev:all": "start npm run start-backend && npm run dev"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
+    "clsx": "^2.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^4.18.2",
+    "framer-motion": "^12.36.0",
     "fs-extra": "^11.3.0",
+    "lucide-react": "^0.577.0",
     "multer": "^1.4.5-lts.1",
     "qrcode.react": "^4.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-dropzone": "^15.0.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1",
     "uuid": "^11.0.0"
   },
   "devDependencies": {
