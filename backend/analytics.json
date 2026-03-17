@@ -1,11 +1,39 @@
 {
-  "images": [],
+  "images": [
+    {
+      "id": "607c3420-11ed-48d3-b0c4-93eb9fe12da6",
+      "filename": "WhatsApp_Image_2026-03-12_at_1.21.52_PM.jpeg",
+      "original_name": "WhatsApp Image 2026-03-12 at 1.21.52 PM.jpeg",
+      "github_path": "images/2026/03/photo-1773737837812-c6cb.webp",
+      "size": 14112,
+      "mime_type": "image/jpeg",
+      "width": 714,
+      "height": 1245,
+      "github_url": "https://raw.githubusercontent.com/Uviii9p/link-4u/main/images/2026/03/photo-1773737837812-c6cb.webp",
+      "cdn_url": "https://cdn.jsdelivr.net/gh/Uviii9p/link-4u/images/2026/03/photo-1773737837812-c6cb.webp",
+      "preview_url": "https://cdn.jsdelivr.net/gh/Uviii9p/link-4u/thumbnails/2026/03/photo-1773737837812-c6cb.webp",
+      "short_link": "b20d5660",
+      "collection": "Uncategorized",
+      "palette": "[\"#145cfa\",\"#9bbbe9\",\"#3c146c\",\"#6c62ac\",\"#ccdce7\",\"#27344d\"]",
+      "tags": "[\"vision\",\"jpeg\",\"nebula\",\"data-cluster\"]",
+      "caption": "[Node 5040] A secured vision fragment discovered. Origin: WhatsApp_Image_2026-03-12_at_1.21.52_PM.jpeg.",
+      "created_at": "2026-03-17T08:57:20.068Z",
+      "views": 0,
+      "bandwidth_used": 0
+    }
+  ],
   "analytics_stats": {
     "id": 1,
-    "total_images": 0,
+    "total_images": 1,
     "total_views": 0,
     "total_bandwidth": 0,
-    "updated_at": "2026-03-13T11:56:14.032Z"
+    "updated_at": "2026-03-17T08:57:20.069Z"
   },
-  "daily_stats": {}
+  "daily_stats": {
+    "2026-03-17": {
+      "date": "2026-03-17",
+      "uploads": 1,
+      "views": 0
+    }
+  }
 }
