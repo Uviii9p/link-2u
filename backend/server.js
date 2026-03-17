@@ -59,14 +59,17 @@ const GITHUB_USERNAME = process.env.GITHUB_USERNAME || 'Uviii9p';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'ima';
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
 
-const uploadToGitHub = async (base64Content, gitPath, message) => {
+const uploadToGitHub = async (base64Content, gitPath, message, sha = null) => {
   try {
     const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${gitPath}`;
-    const response = await axios.put(url, {
-      message: message || "Upload image from GitHub Image Cloud",
+    const payload = {
+      message: message || "Upload from StellarVault",
       content: base64Content,
       branch: BRANCH
-    }, {
+    };
+    if (sha) payload.sha = sha;
+
+    const response = await axios.put(url, payload, {
       headers: {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3+json',
@@ -111,9 +114,49 @@ const getFileSha = async (gitPath) => {
     return response.data.sha;
   } catch (err) {
     if (err.response && err.response.status === 404) return null;
-    throw err;
+    return null; // Silent fail for sync
   }
 };
+
+const syncDBWithGitHub = async () => {
+  if (!GITHUB_TOKEN) return;
+  const dbFile = 'database/vault_index.json';
+  try {
+    const currentState = dbHandler.getState();
+    const content = Buffer.from(JSON.stringify(currentState, null, 2)).toString('base64');
+    const sha = await getFileSha(dbFile);
+    await uploadToGitHub(content, dbFile, `Vault Sync: ${new Date().toISOString()}`, sha);
+    console.log('[Sync] Database state pushed to GitHub');
+  } catch (err) {
+    console.error('[Sync Error]', err.message);
+  }
+};
+
+const initDBFromGitHub = async () => {
+  if (!GITHUB_TOKEN) return;
+  const dbFile = 'database/vault_index.json';
+  try {
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${dbFile}?ref=${BRANCH}`;
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    const cloudData = JSON.parse(Buffer.from(response.data.content, 'base64').toString('utf-8'));
+    if (cloudData && Array.isArray(cloudData.images)) {
+      dbHandler.setState(cloudData);
+      console.log('[Sync] Database state loaded from GitHub');
+    }
+  } catch (err) {
+    if (err.response?.status !== 404) {
+      console.error('[Init Sync Error]', err.message);
+    }
+  }
+};
+
+// Initial Sync
+initDBFromGitHub();
 
 const generateShortLink = () => {
   return crypto.randomBytes(4).toString('hex');
@@ -259,6 +302,9 @@ app.post('/api/upload', upload.array('images', 50), async (req, res) => {
   }
 
   res.json({ success: true, uploaded: results });
+  
+  // Background sync after upload
+  syncDBWithGitHub().catch(process.env.NODE_ENV === 'development' ? console.error : () => {});
 });
 
 // Error handling middleware
@@ -337,16 +383,24 @@ app.post('/api/delete', async (req, res) => {
   dbHandler.deleteImage.run(id);
   dbHandler.updateGlobalAnalytics.run();
   res.json({ success: true, message: 'Image removed from vault and GitHub' });
+  syncDBWithGitHub();
 });
 
 app.post('/api/rename', (req, res) => {
   const { id, newName } = req.body;
   if (!id || !newName) return res.status(400).json({ error: 'Missing parameters' });
-  
   const cleanName = newName.replace(/[^a-zA-Z0-9.-]/g, '_');
-  
   dbHandler.renameImage.run(cleanName, id);
   res.json({ success: true });
+  syncDBWithGitHub();
+});
+
+app.post('/api/move', (req, res) => {
+  const { id, collection } = req.body;
+  if (!id || !collection) return res.status(400).json({ error: 'Missing parameters' });
+  dbHandler.updateCollection.run(collection, id);
+  res.json({ success: true });
+  syncDBWithGitHub();
 });
 
 app.get('/s/:shortId', (req, res) => {

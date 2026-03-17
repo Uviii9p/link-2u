@@ -27,11 +27,16 @@ const loadDB = () => {
 
 const saveDB = () => {
   try {
-    // Vercel /tmp allows writing. If this fails, it logs safely.
     fs.writeJsonSync(dbPath, data, { spaces: 2 });
   } catch (err) {
     console.error('Failed to save DB:', err);
   }
+};
+
+const getState = () => data;
+const setState = (newData) => {
+  data = { ...data, ...newData };
+  saveDB();
 };
 
 loadDB();
@@ -127,4 +132,4 @@ const statements = {
   }
 };
 
-module.exports = { ...statements };
+module.exports = { ...statements, getState, setState };
