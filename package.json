@@ -6,6 +6,9 @@
     "frontend",
     "backend"
   ],
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "install-all": "npm install",
     "build": "npm run build --workspace=frontend"
