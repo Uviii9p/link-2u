@@ -6,4 +6,6 @@ analytics.json
 backend/analytics.json
 dist/
 temp_uploads/
+images/
+thumbnails/
 .DS_Store
