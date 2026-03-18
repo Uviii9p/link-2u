@@ -1,19 +1,23 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const axios = require('axios');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
-const dbHandler = require('./db');
-const fs = require('fs-extra');
-const os = require('os');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import axios from 'axios';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
+import fs from 'fs-extra';
+import os from 'os';
+import { fileURLToPath } from 'url';
+import dbHandler from './db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Optional native dependencies (may fail on Vercel)
 let sharp, Vibrant;
-try { sharp = require('sharp'); } catch (e) { console.warn('sharp not available, image processing disabled'); }
-try { Vibrant = require('node-vibrant'); } catch (e) { console.warn('node-vibrant not available, palette extraction disabled'); }
+try { sharp = (await import('sharp')).default; } catch (e) { console.warn('sharp not available, image processing disabled'); }
+try { Vibrant = (await import('node-vibrant')).default; } catch (e) { console.warn('node-vibrant not available, palette extraction disabled'); }
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,7 +32,7 @@ const storage = multer.diskStorage({
     const uploadDir = process.env.VERCEL 
       ? path.join(os.tmpdir(), 'temp_uploads') 
       : path.join(__dirname, 'temp_uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -153,6 +157,15 @@ const initDBFromGitHub = async () => {
       console.error('[Init Sync Error]', err.message);
     }
   }
+};
+
+const flushStateSync = async () => {
+  const syncPromise = syncDBWithGitHub();
+  if (process.env.VERCEL) {
+    await syncPromise;
+    return;
+  }
+  syncPromise.catch(process.env.NODE_ENV === 'development' ? console.error : () => {});
 };
 
 // Initial Sync
@@ -301,10 +314,8 @@ app.post('/api/upload', upload.array('images', 50), async (req, res) => {
     }
   }
 
+  await flushStateSync();
   res.json({ success: true, uploaded: results });
-  
-  // Background sync after upload
-  syncDBWithGitHub().catch(process.env.NODE_ENV === 'development' ? console.error : () => {});
 });
 
 // Error handling middleware
@@ -382,25 +393,25 @@ app.post('/api/delete', async (req, res) => {
 
   dbHandler.deleteImage.run(id);
   dbHandler.updateGlobalAnalytics.run();
+  await flushStateSync();
   res.json({ success: true, message: 'Image removed from vault and GitHub' });
-  syncDBWithGitHub();
 });
 
-app.post('/api/rename', (req, res) => {
+app.post('/api/rename', async (req, res) => {
   const { id, newName } = req.body;
   if (!id || !newName) return res.status(400).json({ error: 'Missing parameters' });
   const cleanName = newName.replace(/[^a-zA-Z0-9.-]/g, '_');
   dbHandler.renameImage.run(cleanName, id);
+  await flushStateSync();
   res.json({ success: true });
-  syncDBWithGitHub();
 });
 
-app.post('/api/move', (req, res) => {
+app.post('/api/move', async (req, res) => {
   const { id, collection } = req.body;
   if (!id || !collection) return res.status(400).json({ error: 'Missing parameters' });
   dbHandler.updateCollection.run(collection, id);
+  await flushStateSync();
   res.json({ success: true });
-  syncDBWithGitHub();
 });
 
 app.get('/s/:shortId', (req, res) => {
@@ -425,4 +436,4 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   });
 }
 
-module.exports = app;
+export default app;

@@ -1,3 +1,3 @@
-module.exports = (req, res) => {
+export default (req, res) => {
   res.json({ hello: "world", date: new Date().toISOString() });
 };

@@ -1,11 +1,15 @@
-const fs = require('fs-extra');
-const path = require('path');
-const os = require('os');
+import fs from 'fs-extra';
+import path from 'path';
+import os from 'os';
+import { fileURLToPath } from 'url';
 
-// Use /tmp for Vercel's read-only environment
-const dbPath = process.env.VERCEL 
-  ? path.join(os.tmpdir(), 'analytics.json') 
-  : path.join(__dirname, 'analytics.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const localDbPath = path.join(__dirname, 'analytics.json');
+const dbPath = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'analytics.json')
+  : localDbPath;
 
 let data = {
   images: [],
@@ -17,6 +21,9 @@ const loadDB = () => {
   try {
     if (fs.existsSync(dbPath)) {
       data = fs.readJsonSync(dbPath);
+    } else if (process.env.VERCEL && fs.existsSync(localDbPath)) {
+      data = fs.readJsonSync(localDbPath);
+      saveDB();
     } else {
       saveDB();
     }
@@ -132,4 +139,4 @@ const statements = {
   }
 };
 
-module.exports = { ...statements, getState, setState };
+export default { ...statements, getState, setState };
